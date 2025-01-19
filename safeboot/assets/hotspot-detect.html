@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content="0; url='/'" />
+    <style>
+      * {
+        margin: auto;
+        text-align: center;
+        font-family: Tahoma, Verdana, sans-serif;
+        color: black;
+        font-weight: normal;
+        padding: 0;
+      }
+
+      .header {
+        width: 90%;
+        text-align: center;
+        padding: 0;
+        margin: 0 auto 0 auto;
+        max-width: 400px;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 24px;
+        display: none;
+        margin: 48px auto 24px auto;
+      }
+
+      h5 {
+        font-size: 12px;
+        color: gray;
+        margin: 0 auto 12px auto;
+        padding: 0;
+      }
+
+      a {
+        font-size: 12px;
+        color: gray;
+      }
+
+      .logo {
+        margin: 12px auto 0 auto;
+      }
+    </style>
+    <title>SafeBoot</title>
+  </head>
+  <body>
+    <div class="header">
+      <h1 id="title">SafeBoot</h1>
+      <img
+        id="logo"
+        src="/safeboot_logo"
+        alt="Logo"
+        class="logo"
+        onerror="document.getElementById('logo').remove();document.getElementById('title').style.display = 'block';"
+      />
+      <h5>        
+        Go to the  
+        <a id="forward_link" href="/" target="_self">
+        Firmware Update</a
+        >
+         Page...
+      </h5>
+    </div>
+    <script>
+      const forward_link = document.getElementById("forward_link")
+      forward_link.addEventListener("click", (event) => {
+      	event.preventDefault()
+        window.open("/", "_self")
+      })
+    </script>
+  </body>
+</html>

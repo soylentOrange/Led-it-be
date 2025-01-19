@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta
+      name="apple-mobile-web-app-title"
+      content="apple-mobile-web-app-title: Will be inserted by customize_thingy_html.py"
+    />
+    <title>Will be inserted by customize_thingy_html.py</title>
+    <style>
+      * {
+        margin: auto;
+        text-align: center;
+        font-family: Tahoma, Verdana, sans-serif;
+        color: black;
+        font-weight: normal;
+        padding: 0;
+      }
+
+      .shadow_container {
+        width: 80%;
+        max-width: 400px;
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow:
+          0 2px 6px 0 rgba(0, 0, 0, 0.1),
+          0 4px 10px 0 rgba(0, 0, 0, 0.1);
+      }
+
+      .result_container {
+        width: 100%;
+        display: none;
+        margin: auto;
+        padding-top: 50px;
+        padding-bottom: 50px;
+      }
+
+      .result_text {
+        width: 100%;
+        font-size: 14px;
+        margin: 15px auto 10px auto;
+      }
+
+      .header {
+        width: 90%;
+        text-align: center;
+        padding: 0;
+        margin: 0 auto 0 auto;
+        max-width: 400px;
+      }
+
+      .column {
+        width: 100%;
+      }
+
+      .info_texts {
+        display: block;
+        width: 100%;
+        margin: 10px auto auto auto;
+        padding: 0;
+        font-size: 14px;
+      }
+
+      .info_text_container {
+        display: flex;
+        margin-top: 10px;
+      }
+
+      .info_text_name {
+        width: 35%;
+        margin-left: 0;
+        padding-left: 10px;
+        text-align: left;
+        color: black;
+      }
+
+      .info_text_value {
+        width: 65%;
+        margin-right: 0;
+        padding-right: 10px;
+        text-align: right;
+        color: gray;
+      }
+
+      p {
+        font-size: 18px;
+        color: gray;
+        margin: 0;
+      }
+
+      hr {
+        color: lightgray;
+        margin: 24px auto 14px auto;
+        width: 100%;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 24px;
+        display: none;
+        margin: 48px auto 24px auto;
+      }
+
+      h2 {
+        font-size: 18px;
+        margin: 0;
+      }
+
+      h5 {
+        font-size: 12px;
+        color: gray;
+        margin: 0 auto 12px auto;
+        padding: 0;
+      }
+
+      h6 {
+        font-size: 16px;
+        color: gray;
+        margin: 0;
+      }
+
+      button {
+        width: 100%;
+        padding: 8px;
+        border: none;
+        cursor: pointer;
+        margin-top: 8px;
+        font-size: 16px;
+        border-radius: 5px;
+        background: rgb(75, 75, 75);
+        color: white;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      .svg_badge {
+        margin-bottom: 15px;
+      }
+
+      .logo {
+        margin: 12px auto 0 auto;
+      }
+
+      .led_content {
+        margin: auto;
+        width: 200px;
+        height: 200px;
+        border: solid;
+        border-width: 0;
+        cursor: pointer;
+      }
+
+      .loader_badge {
+        margin-bottom: 15px;
+        width: 65px;
+        height: 65px;
+      }
+
+      .loader_badge > .loader {
+        margin-top: 7px;
+        margin-bottom: 0;
+      }
+
+      .column > .loader {
+        margin-bottom: 73px;
+      }
+
+      .loader {
+        border: 6px solid lightgray;
+        border-radius: 50%;
+        border-top: 6px solid rgb(75, 75, 75);
+        margin-top: 69px;
+        width: 46px;
+        height: 46px;
+        -webkit-animation: spin 1s linear infinite;
+        animation: spin 1s linear infinite;
+        cursor: wait;
+      }
+
+      @-webkit-keyframes spin {
+        0% {
+          -webkit-transform: rotate(0deg);
+        }
+        100% {
+          -webkit-transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1 id="title">Will be inserted by customize_thingy_html.py</h1>
+      <img
+        id="logo"
+        src="/thingy_logo"
+        alt="Logo"
+        class="logo"
+        onerror="document.getElementById('logo').remove();document.getElementById('title').style.display = 'block';"
+      />
+      <h5 id="help_text"></h5>
+    </div>
+    <div class="shadow_container">
+      <div class="result_container" id="result_container">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="72"
+          height="72"
+          viewBox="0 0 24 24"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="0"
+          fill="#16c79a"
+          class="svg_badge"
+          id="svg_success"
+        >
+          <path
+            d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12zm14.664-3.247a1 1 0 0 1 .083 1.411l-5.333 6a1 1 0 0 1-1.495 0l-2.666-3a1 1 0 0 1 1.494-1.328l1.92 2.159 4.586-5.16a1 1 0 0 1 1.411-.082z"
+          ></path>
+        </svg>
+
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="72"
+          height="72"
+          viewBox="0 0 24 24"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="0"
+          fill="#ec4646"
+          class="svg_badge"
+          id="svg_error"
+        >
+          <path
+            d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12zm5.793-4.207a1 1 0 0 1 1.414 0L12 10.586l2.793-2.793a1 1 0 1 1 1.414 1.414L13.414 12l2.793 2.793a1 1 0 0 1-1.414 1.414L12 13.414l-2.793 2.793a1 1 0 0 1-1.414-1.414L10.586 12 7.793 9.207a1 1 0 0 1 0-1.414z"
+          ></path>
+        </svg>
+
+        <div class="loader_badge" id="result_loader_animation">
+          <div class="loader"></div>
+        </div>
+
+        <div class="result_text" , id="result_text">OK!</div>
+      </div>
+
+      <div class="column" id="led_content_area">
+        <div class="loader" id="led_loader_animation"></div>
+        <img
+          id="led_content"
+          alt="This might be shown on screen."
+          class="led_content"
+        />
+        <h5 id="led_content_info"></h5>
+      </div>
+
+      <div class="column" id="settings_area">
+        <button id="restart_button">Restart Thingy</button>
+        <button id="clear_wifi_button">Reset WiFi credentials</button>
+        <button id="safeboot_button">Enter SafeBoot</button>
+      </div>
+
+      <div class="column" id="info_area">
+        <hr />
+        <div id="info_texts" class="info_texts">
+          <div class="info_text_container">
+            <div class="info_text_name">Board Name:</div>
+            <div class="info_text_value" id="info_text_board">Unknown</div>
+          </div>
+          <div class="info_text_container">
+            <div class="info_text_name">Thingy Build:</div>
+            <div class="info_text_value" id="info_text_build">Unknown</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="column" id="button_container">
+        <hr />
+        <button id="button_main">&lt&lt Main</button>
+        <button id="button_settings">Settings &gt&gt</button>
+      </div>
+    </div>
+    <script>
+      const led_content_area = document.getElementById("led_content_area")
+      const info_area = document.getElementById("info_area")
+      const result_container = document.getElementById("result_container")
+      const result_loader = document.getElementById("result_loader_animation")
+      const result_text = document.getElementById("result_text")
+      const svg_success = document.getElementById("svg_success")
+      const svg_error = document.getElementById("svg_error")
+      const restart_button = document.getElementById("restart_button")
+      const safeboot_button = document.getElementById("safeboot_button")
+      const clear_wifi_button = document.getElementById("clear_wifi_button")
+      const button_container = document.getElementById("button_container")
+      const button_main = document.getElementById("button_main")
+      const button_settings = document.getElementById("button_settings")
+      const info_text_board = document.getElementById("info_text_board")
+      const info_text_build = document.getElementById("info_text_build")
+      const help_text = document.getElementById("help_text")
+      const settings_area = document.getElementById("settings_area")
+      const led_loader = document.getElementById("led_loader_animation")
+      const led_content = document.getElementById("led_content")
+      const led_content_info = document.getElementById("led_content_info")
+      const no_service_svg =
+        '<svg version="1.1" viewBox="0 0 200 200" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(6,0,0,6,28,28)" fill="#ec4646" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"><path d="m12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm-10 8c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10-10-4.477-10-10z"/><path d="m12 10a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1zm1.5-2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></g></svg>'
+
+      const led_on_svg =
+        '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" width="800px" height="800px"><svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1zm7.071 2.929a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0zm-14.142 0a1 1 0 0 1 1.414 0l.707.707A1 1 0 0 1 5.636 7.05l-.707-.707a1 1 0 0 1 0-1.414zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-6 4a6 6 0 1 1 12 0 6 6 0 0 1-12 0zm-4 0a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm17 0a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1zM5.636 16.95a1 1 0 0 1 1.414 1.414l-.707.707a1 1 0 0 1-1.414-1.414l.707-.707zm11.314 1.414a1 1 0 0 1 1.414-1.414l.707.707a1 1 0 0 1-1.414 1.414l-.707-.707zM12 19a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1z" fill="#0D0D0D"></path></svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }@media (prefers-color-scheme: dark) { :root { filter: none; } }</style></svg>'
+
+      const led_off_svg =
+        '<?xml version="1.0" encoding="UTF-8"?><svg version="1.1" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg"><path d="m400 266.67a133.33 133.33 0 1 0 0 266.67 133.33 133.33 0 0 0 0-266.67zm-200 133.33a200 200 0 1 1 400 0 200 200 0 0 1-400 0z" stroke-width="33.333"/><style>@media (prefers-color-scheme: light) { :root { filter: none; } }@media (prefers-color-scheme: dark) { :root { filter: none; } }</style></svg>'
+
+      const led_blink_svg = 
+        '<?xml version="1.0" encoding="UTF-8"?><svg version="1.1" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg"><path d="m350 683.33a33.333 33.333 0 0 1 33.333-33.333h33.333a33.333 33.333 0 1 1 0 66.667h-33.333a33.333 33.333 0 0 1-33.333-33.333z" stroke-width="33.333"/><path d="m612.13 635.7a33.333 33.333 0 0 1-47.133-47.133l23.567-23.567a33.333 33.333 0 0 1 47.133 47.133z" stroke-width="33.333"/><path d="m164.3 612.13a33.333 33.333 0 0 1 47.133-47.133l23.567 23.567a33.333 33.333 0 0 1-47.133 47.133z" stroke-width="33.333"/><path d="m683.33 450a33.333 33.333 0 0 1-33.333-33.333v-33.333a33.333 33.333 0 1 1 66.667 0v33.333a33.333 33.333 0 0 1-33.333 33.333z" stroke-width="33.333"/><path d="m116.67 450a33.333 33.333 0 0 1-33.333-33.333v-33.333a33.333 33.333 0 1 1 66.667 0v33.333a33.333 33.333 0 0 1-33.333 33.333z" stroke-width="33.333"/><path d="m400 266.67a133.33 133.33 0 1 0 0 266.67 133.33 133.33 0 0 0 0-266.67zm-200 133.33a200 200 0 1 1 400 0 200 200 0 0 1-400 0z" stroke-width="33.333"/><path d="m164.3 234.6a33.333 33.333 0 0 1 0-47.133l23.567-23.567a33.333 33.333 0 0 1 47.133 47.133l-23.567 23.567a33.333 33.333 0 0 1-47.133 0z" stroke-width="33.333"/><path d="m635.7 235.42a33.333 33.333 0 0 1-47.133 0l-23.567-23.567a33.333 33.333 0 1 1 47.133-47.133l23.567 23.567a33.333 33.333 0 0 1 0 47.133z" stroke-width="33.333"/><path d="m350 116.67a33.333 33.333 0 0 1 33.333-33.333h33.333a33.333 33.333 0 1 1 0 66.667h-33.333a33.333 33.333 0 0 1-33.333-33.333z" stroke-width="33.333"/><style>@media (prefers-color-scheme: light) { :root { filter: none; } }@media (prefers-color-scheme: dark) { :root { filter: none; } }</style></svg>'
+      
+      const led_content_state_enum = {
+        idle: "idle",
+        not_initialized: "not_initialized",
+        in_progress: "in_progress",
+      }
+
+      var led_content_state = led_content_state_enum.not_initialized
+      var led_images = {
+        images: [
+          {
+            name: "Off",
+            src: "data:image/svg+xml;base64," + btoa(led_off_svg),
+            state_idx: 0,
+          },
+          {
+            name: "On",
+            src: "data:image/svg+xml;base64," + btoa(led_on_svg),
+            state_idx: 1,
+          },
+          {
+            name: "Blink",
+            src: "data:image/svg+xml;base64," + btoa(led_blink_svg),
+            state_idx: 2,
+          },
+        ],
+      }
+      var led_state_idx = -1
+
+      showMain()
+      prepareGetLEDContent()
+      getLEDContent()
+
+      led_content_area.addEventListener("click", async () => {
+        console.log("led_content_area onclick")
+        console.log("led_content_state: " + led_content_state)
+
+        if (led_images.images.length == 1) return
+
+        if (led_content_state == led_content_state_enum.idle) {
+          if (led_images.images.length > ++led_state_idx) {
+            await putLEDContent(
+              led_images.images[led_state_idx].name,
+              led_images.images[led_state_idx].src,
+              led_images.images[led_state_idx].state_idx,
+            )
+          } else {
+            led_state_idx = 0
+            await putLEDContent(
+              led_images.images[led_state_idx].name,
+              led_images.images[led_state_idx].src,
+              led_images.images[led_state_idx].state_idx,
+            )
+          }
+        }
+      })
+
+      async function getInfo(info_url) {
+        try {
+          const response = await fetch(info_url)
+          if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`)
+          }
+
+          const board_name = await response.text()
+
+          return board_name
+        } catch (error) {
+          return "Unknown"
+        }
+      }
+
+      // show main view (default)
+      button_main.addEventListener("click", () => {
+        showMain()
+      })
+
+      // show the second page
+      button_settings.addEventListener("click", () => {
+        showSettings()
+      })
+
+      // restart thingy by HTTP_GET'ting /restart
+      restart_button.addEventListener("click", () => {
+        doSomethingWithThingy("/restart")
+      })
+
+      // restart thingy into SafeBoot-mode by HTTP_GET'ting /safeboot
+      safeboot_button.addEventListener("click", () => {
+        doSomethingWithThingy("/safeboot")
+      })
+
+      // clear Wifi-credentials (stored by ESPConnect) and restart
+      clear_wifi_button.addEventListener("click", () => {
+        doSomethingWithThingy("/clearwifi")
+      })
+
+      // fetch the LED state (thingy will return a json)
+      async function getLEDState() {
+        console.log("getLEDState")
+        try {
+          const response = await fetch("/led/state")
+          if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`)
+          }
+
+          const json = await response.json()
+
+          return { state: json.state, state_idx: json.state_idx }
+        } catch (error) {
+          console.error(error.message)
+          return {
+            state: led_content_state_enum.not_initialized,
+            state_idx: -1,
+          }
+        }
+      }
+
+      // prepare the main view before getting the initial state of the LED
+      // also, fetch the json listing all of the available images in littleFS
+      async function prepareGetLEDContent() {
+        led_content_info.innerHTML = "Processing..."
+        led_content.style.display = "none"
+        led_loader.style.display = "block"
+        led_loader.style.cursor = "wait"
+        led_content.style.cursor = "wait"
+        help_text.innerHTML = "Be patient: LEDThingy is working..."
+
+        // show board name and build DateTime
+        info_text_board.innerHTML = await getInfo("/boardname") 
+        info_text_build.innerHTML = await getInfo("/buildtime")
+      }
+
+      // get some info on what is shown right now by the LED
+      // when something is shown on the LED, reflect it on the main view as well
+      // will do pseudo-recursion by calling it itself again (after 0.1 s) when thingy is reporting in_progress
+      async function getLEDContent() {
+        let { state, state_idx } = await getLEDState()
+
+        led_content_state = state
+        led_state_idx = state_idx
+        if (led_content_state == led_content_state_enum.not_initialized) {
+          led_content.src =
+            "data:image/svg+xml;base64," + btoa(no_service_svg)
+          led_content_info.innerHTML = "No response!"
+          led_content.style.display = "block"
+          led_loader.style.display = "none"
+          led_content.style.cursor = "not-allowed"
+          help_text.innerHTML =
+            "Something went wrong: device is not responding!"
+        } else if (
+          led_content_state == led_content_state_enum.in_progress
+        ) {
+          window.setTimeout(async () => {
+            getLEDContent()
+          }, 100)
+        } else {
+          if (led_images.images.length <= 1) {
+            help_text.innerHTML = "Nothing more to show than an unpowered LED..."
+          } else {
+            help_text.innerHTML =
+              "Click to toggle the LED."
+          }
+          reflectLEDContent(
+            led_images.images[led_state_idx].name,
+            led_images.images[led_state_idx].src,
+          )
+        }
+      }
+
+      // reflect the current LED state in the main-view
+      function reflectLEDContent(name, src) {
+        led_content_state = led_content_state_enum.idle
+        led_content.src = src
+        led_content_info.innerHTML = name
+        led_content.style.display = "block"
+        led_loader.style.display = "none"
+        led_content.style.cursor =
+          led_images.images.length <= 1 ? "not-allowed" : "pointer"
+      }
+
+      // set a new LED state (static on/off of -later- LED animation) to be shown
+      async function putLEDContent(name, src, state_idx) {
+        led_content_state = led_content_state_enum.in_progress
+        led_content_info.innerHTML = "Processing..."
+        led_content.style.display = "none"
+        led_loader.style.display = "block"
+        led_content.style.cursor = "wait"
+
+        // do fetch
+        console.log("putLEDContent")
+        try {
+          const ledRequest = new Request("/led/state", {
+            method: "PUT",
+            body: JSON.stringify({ state_idx: state_idx }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+
+          const response = await fetch(ledRequest)
+          if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`)
+          }
+
+          // check and reflect the new content
+          getLEDContent()
+        } catch (error) {
+          console.error(error.message)
+          led_content_state = led_content_state_enum.not_initialized
+          led_content.src =
+            "data:image/svg+xml;base64," + btoa(no_service_svg)
+          led_content_info.innerHTML = "No response!"
+          led_content.style.display = "block"
+          led_loader.style.display = "none"
+          led_content.style.cursor = "not-allowed"
+          help_text.innerHTML =
+            "Something went wrong: device is not responding!"
+        }
+      }
+
+      // catch-all function to do restarting
+      // depending on the url passed, it will restart, restart into SafeBoot-mode, or clear the WiFi-credentials
+      async function doSomethingWithThingy(url) {
+        showResultContainer()
+        result_text.innerHTML = "Processing..."
+        help_text.innerHTML = " "
+
+        try {
+          const response = await fetch(url)
+          if (!response.ok) {
+            throw new Error(`Failed! ${response.status}`)
+          }
+
+          result_loader.style.display = "none"
+          svg_success.style.display = "block"
+          result_text.innerHTML = "Success! " + (await response.text())
+        } catch (error) {
+          result_loader.style.display = "none"
+          svg_error.style.display = "block"
+          result_text.innerHTML = error.message
+        } finally {
+          refreshHome(7500)
+        }
+      }
+
+      // refresh after delay
+      // will actually load either this website, the SafeBoot-website, or ESPConnect-portal...
+      // ...depending on the type of restart that was performed before
+      function refreshHome(timeout) {
+        window.setTimeout(function () {
+          window.open("/", "_self")
+        }, timeout)
+      }
+
+      // show the main-view and hide everything else
+      function showMain() {
+        button_main.style.display = "none"
+        button_settings.style.display = "block"
+        settings_area.style.display = "none"
+        info_area.style.display = "none"
+        led_content_area.style.display = "block"
+        switch (led_content_state) {
+          case led_content_state_enum.in_progress:
+            led_content.style.display = "none"
+            led_loader.style.display = "block"
+            break
+          default:
+            led_content.style.display = "block"
+            led_loader.style.display = "none"
+        }
+
+        switch (led_content_state) {
+          case led_content_state_enum.not_initialized:
+            help_text.innerHTML =
+              "Something went wrong: device is not initialized!"
+            break
+          default:
+            if (led_images.images.length <= 1) {
+              help_text.innerHTML = "Nothing more to show than an unpowered LED..."
+              led_content.style.cursor = "not-allowed"
+            } else {
+              help_text.innerHTML =
+                "Click to toggle the LED."
+                led_content.style.cursor = "pointer"
+            }
+        }
+      }
+
+      // show the settings-view
+      function showSettings() {
+        button_main.style.display = "block"
+        button_settings.style.display = "none"
+        help_text.innerHTML = "You have entered the Danger Zone."
+        settings_area.style.display = "block"
+        info_area.style.display = "block"
+        led_content_area.style.display = "none"
+      }
+
+      // hide everything except for a view of the current progress...
+      // ...and finally the result of some operation (i.e. the different restarts)
+      function showResultContainer() {
+        info_area.style.display = "none"
+        result_container.style.display = "block"
+        svg_success.style.display = "none"
+        svg_error.style.display = "none"
+        result_loader.style.display = "block"
+        help_text.innerHTML = " "
+        button_container.style.display = "none"
+        settings_area.style.display = "none"
+        led_content_area.style.display = "none"
+      }
+    </script>
+  </body>
+</html>
