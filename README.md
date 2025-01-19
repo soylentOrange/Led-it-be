@@ -89,3 +89,4 @@ Mental notes to myself:
 * Use svelte instead of hacking the html-files manually
 * Reduce xternal depencies
 * Add webserial matching OTA
+* Make screenshots smaller
