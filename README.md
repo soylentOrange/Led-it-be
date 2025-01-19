@@ -2,7 +2,9 @@
 
 An overcomplicated project to control the on-board LED of the [Waveshare ESP32-S3-Tiny board](https://www.waveshare.com/wiki/ESP32-S3-Tiny).
 
-![screenshot main](doc/assets/screenhot_main.jpeg | width=100)
+<p align="center">
+    <img src="doc/assets/screenhot_main.jpeg" alt="screenshot main" style="width:30%; height:auto;" >
+</p>
 
 ## Why do I need it?
 
@@ -13,7 +15,9 @@ Not at all. It's intended as a template for future projects.
 This project is implemented using [PlatformIO](https://platformio.org/) with the arduino-3 platform from the (p)eople (i)nitiated (o)ptimized (arduino) ([pioarduino](https://github.com/pioarduino/platform-espressif32/)). For my convenience, OTA-programming is enabled by including the [ArduinoOTA](https://github.com/espressif/arduino-esp32)-library from Espressif Systems' Arduino ESP32 project.
 Firmware updates and ArduinoOTA is enabled with a small safeboot partition (640KB). The main app can span over ~3MB. To trigger a restart into this partion, just call `http://ledthingy.local/safeboot` or hit the SafeBoot-button in the Settings-page. After a few seconds the OTA-Website shows up.
 
-![screenshot safeboot](doc/assets/screenshot_safeboot.jpeg | width=100)
+<p align="center">
+    <img src="doc/assets/screenshot_safeboot.jpeg" alt="screenshot safeboot" style="width:30%; height:auto;" >
+</p>
 
 A little quirky, but the safeboot-partition is tapping the preferences of the main app (more specifically: that of espconnect) to connect to your WiFi, or will create a softAP (in this case you might even upload new firmware from the captive portal after connecting to it - tested only on mac though).
 Also, the logo and board information are provided to the safeboot-partition via preferences (see the `main.cpp`).
@@ -44,7 +48,9 @@ Subsequently, you can just flash it without button juggling or simply flash it O
 
 Additionally, you can use SafeBoot (hit the SafeBoot-button in Settings) to upload firmware and file system images.
 
-![screenshot setting](doc/assets/screenshot_settings.jpeg | width=100)
+<p align="center">
+    <img src="doc/assets/screenshot_settings.jpeg" alt="screenshot settings" style="width:30%; height:auto;" >
+</p>
 
 When flashing the factory.bin (e.g. after updating SafeBoot) you'll always have to to the button juggling.
 
@@ -89,4 +95,3 @@ Mental notes to myself:
 * Use svelte instead of hacking the html-files manually
 * Reduce xternal depencies
 * Add webserial matching OTA
-* Make screenshots smaller
