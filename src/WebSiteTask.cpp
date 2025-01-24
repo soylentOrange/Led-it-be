@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 /*
- * Copyright (C) 2024 Robert Wendlandt
+ * Copyright (C) 2024-2025 Robert Wendlandt
  */
 #include <thingy.h>
-#define TAG "website"
+#define TAG "WebSite"
 
 // gzipped assets
 extern const uint8_t logo_thingy_start[] asm("_binary__pio_assets_logo_thingy_svg_gz_start");

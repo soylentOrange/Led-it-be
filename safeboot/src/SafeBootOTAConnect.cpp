@@ -69,7 +69,7 @@ void SafeBootOTAConnect::begin(const char* hostname, const char* apSSID, const c
     _apPassword = apPassword;
     _config = config; // copy values
 
-    // get config from preferences
+    // get config from preferences (needs to be set there by main app)
     Preferences preferences;
     preferences.begin("safeboot", true);
     _boardName = preferences.getString("board", "Unknown").c_str();

@@ -23,7 +23,7 @@ void setup() {
         Serial.setDebugOutput(true);
     #endif
 
-    // get config from preferences
+    // get info from preferences (needs to be set there by main app)
     Preferences preferences;
     preferences.begin("safeboot", true);
     String app_name = preferences.getString("app_name", "Safeboot");
