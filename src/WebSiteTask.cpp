@@ -27,6 +27,11 @@ Soylent::WebSiteClass::WebSiteClass(AsyncWebServer& webServer)
     : _ledStateIdx(0)
     , _setLEDHandler(nullptr)
     , _scheduler(nullptr)
+    , _ledStateCount(LED_STATES_PLAIN)
+    #ifdef RGB_BUILTIN
+    , _fsMounted(false)
+    , _ledStatesJson(nullptr)
+    #endif 
     , _webServer(&webServer) {
 }
 
@@ -43,26 +48,70 @@ void Soylent::WebSiteClass::begin(Scheduler* scheduler) {
 }
 
 void Soylent::WebSiteClass::end() {
-    // LittleFS.end();
+    
     if (_setLEDHandler != nullptr) {
         delete _setLEDHandler;
         _setLEDHandler = nullptr;
     }
-    // if (_imagesJson != nullptr) {
-    //     delete _imagesJson;
-    //     _imagesJson = nullptr;
-    // }
+
+    #ifdef RGB_BUILTIN
+        LittleFS.end();
+        if (_ledStatesJson != nullptr) {
+            delete _ledStatesJson;
+            _ledStatesJson = nullptr;
+        }
+    #endif 
 }
 
 // Add Handlers to the webserver
 void Soylent::WebSiteClass::_webSiteCallback() {
     LOGD(TAG, "Starting WebSite...");
-    
+
+    #ifdef RGB_BUILTIN
+        // try reading /led_states.json
+        LOGD(TAG, "Reading led_states.json...");
+        File file = LittleFS.open("/led_states.json", "r");
+        if (!file || file.isDirectory()) { 
+            LOGE(TAG, "An Error has occurred while reading led_states.json!"); 
+        } else {
+            std::string fileContent;
+            _ledStatesJson = new JsonDocument();
+            while (file.available()) {
+                char intRead = file.read();
+                fileContent += intRead;
+            }            
+            file.close();
+            deserializeJson(*_ledStatesJson, fileContent);
+            _ledStatesJson->shrinkToFit();
+            if (!_ledStatesJson->as<JsonObject>()["led_states"].is<JsonArray>()) {
+                LOGE(TAG, "An Error has occurred while parsing led_states.json for led_states!");
+            } else {
+                _ledStateCount =  _ledStatesJson->as<JsonObject>()["led_states"].as<JsonArray>().size();
+                LOGI(TAG, "led_states.json seems fine! (%d additional led_states)", _ledStateCount);
+                _ledStateCount += LED_STATES_PLAIN;
+                _fsMounted = true;
+            }
+        }
+    #else
+        _ledStateCount = LED_STATES_PLAIN;
+    #endif
+
+    #ifdef RGB_BUILTIN
+        // serve from File System
+        _webServer->serveStatic("/images/", LittleFS, "/").setFilter([&](__unused AsyncWebServerRequest* request) { return _fsMounted; });
+
+        // serve from File System
+        _webServer->serveStatic("/led_states.json", LittleFS, "/led_states.json", "no-store").setFilter([&](__unused AsyncWebServerRequest* request) { return _fsMounted; });
+    #endif
+
     // Prepare handler for setting led state
     _setLEDHandler = new AsyncCallbackJsonWebHandler("/led/state");
     _setLEDHandler->setMethod(HTTP_PUT);
-    // _setLEDHandler->setFilter([&](__unused AsyncWebServerRequest* request) { return (EventHandler.getState() != Mycila::ESPConnect::State::PORTAL_STARTED &&  _fsMounted); });
-    _setLEDHandler->setFilter([&](__unused AsyncWebServerRequest* request) { return (EventHandler.getState() != Mycila::ESPConnect::State::PORTAL_STARTED); });
+    #ifdef RGB_BUILTIN
+        _setLEDHandler->setFilter([&](__unused AsyncWebServerRequest* request) { return (EventHandler.getState() != Mycila::ESPConnect::State::PORTAL_STARTED &&  _fsMounted); });
+    #else
+        _setLEDHandler->setFilter([&](__unused AsyncWebServerRequest* request) { return (EventHandler.getState() != Mycila::ESPConnect::State::PORTAL_STARTED); });
+    #endif
     _setLEDHandler->onRequest([&] (AsyncWebServerRequest* request, JsonVariant& json ) {
         LOGD(TAG, "Serve (put) /led/state");
         auto led_state_idx = json.as<JsonObject>()["state_idx"].as<int32_t>();
@@ -71,7 +120,7 @@ void Soylent::WebSiteClass::_webSiteCallback() {
             LOGW(TAG, "LED not available");
             request->send(503, "text/plain", "LED not available");
         #else
-            if (led_state_idx < 0 || led_state_idx > 2) {
+            if (led_state_idx < 0 || led_state_idx > _ledStateCount - 1) {
                 LOGW(TAG, "state_idx out of bounds");
                 request->send(418, "text/plain", "state_idx out of bounds");
             } else {
@@ -80,21 +129,28 @@ void Soylent::WebSiteClass::_webSiteCallback() {
                         // 0 is hardcoded to off
                         LOGI(TAG, "Switch LED to off!"); 
                         Led.setLedState(Soylent::LedClass::LedState::OFF);
-                        // digitalWrite(BUILTIN_LED, LOW);
                         _ledStateIdx = led_state_idx;                  
                         break;
                     case 1:    
                         // 1 is hardcoded to on                
                         LOGI(TAG, "Switch LED to on!"); 
                         Led.setLedState(Soylent::LedClass::LedState::ON);
-                        // digitalWrite(BUILTIN_LED, HIGH);
                         _ledStateIdx = led_state_idx;                  
                         break;
                     case 2:    
                         // 2 is hardcoded to Blinking                
-                        LOGI(TAG, "Switch LED to on and off...!"); 
+                        LOGI(TAG, "Switch LED to on and off and on and ...!"); 
                         Led.setLedState(Soylent::LedClass::LedState::BLINK);
-                        // digitalWrite(BUILTIN_LED, HIGH);
+                        _ledStateIdx = led_state_idx;                  
+                        break;
+                    case 3:    
+                        // 3 is hardcoded to Rainbow    
+                        #ifdef RGB_BUILTIN
+                            LOGI(TAG, "Show a beautiful rainbow...!"); 
+                        #else
+                            LOGI(TAG, "Show a boring rainbow...!");
+                        #endif       
+                        Led.setLedState(Soylent::LedClass::LedState::RAINBOW); 
                         _ledStateIdx = led_state_idx;                  
                         break;
                     default: {
@@ -120,14 +176,6 @@ void Soylent::WebSiteClass::_webSiteCallback() {
         AsyncResponseStream* response = request->beginResponseStream("application/json");
         JsonDocument doc;
         JsonObject root = doc.to<JsonObject>();
-
-        // if (Display.isBusy()) {
-        //     root["state"] = "in_progress";
-        // } else if (!Display.isInitialized()) {
-        //     root["state"] = "not_initialized";
-        // } else {
-        //     root["state"] = "idle";
-        // }
         
         root["state"] = "idle";
         root["state_idx"] = _ledStateIdx;

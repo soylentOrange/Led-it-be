@@ -15,9 +15,14 @@ namespace Soylent {
 
     private:
         void _webSiteCallback();
-        int32_t _ledStateIdx;
         AsyncCallbackJsonWebHandler* _setLEDHandler;
         Scheduler* _scheduler;
         AsyncWebServer* _webServer;
+        int32_t _ledStateCount;
+        #ifdef RGB_BUILTIN
+            bool _fsMounted = false;     
+            JsonDocument* _ledStatesJson;
+        #endif   
+        int32_t _ledStateIdx;
     };
 } // namespace Soylent

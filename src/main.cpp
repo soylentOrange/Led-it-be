@@ -60,6 +60,13 @@ void setup() {
     // Initialize the Scheduler
     scheduler.init();
 
+    // Mount the FS, yet only required when a RGB-LED is available
+    #ifdef RGB_BUILTIN        
+        if (!LittleFS.begin(false)) {
+            LOGE(APP_NAME, "An Error has occurred while mounting LittleFS!");      
+        }
+    #endif 
+
     // Add LED-Task to Scheduler
     Led.begin(&scheduler);
 

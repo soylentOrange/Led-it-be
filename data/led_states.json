@@ -1,0 +1,6 @@
+{
+    "led_states": 
+    [ 
+        {"name": "Show the rainbow!", "src": "/images/rainbow.svg", "state_idx": 3}
+    ]
+}

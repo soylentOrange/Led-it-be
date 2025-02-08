@@ -29,7 +29,7 @@ When using Over-the-Air (OTA) updating from PlatformIO, the safeboot-mode will b
 * The task manager is [TaskScheduler](https://github.com/arkhipenko/TaskScheduler) - BSD 3-Clause "New" or "Revised" License
 * The safeboot-partition contains ArduinoOTA and OTA-Update - the scripts factory.py and safeboot.py from [MycilaSafeBoot](https://github.com/mathieucarbou/MycilaSafeBoot) fall under MIT license. [ArduinoOTA](https://github.com/espressif/arduino-esp32/tree/master/libraries/ArduinoOTA) and [Update](https://github.com/espressif/arduino-esp32/tree/master/libraries/Update) are from [Espressif Systems' Arduino ESP32 core library](https://github.com/espressif/arduino-esp32/tree/master/libraries). Both are Apache-2.0
 * The icons from the [Mono Interface Icons Collection](https://www.svgrepo.com/collection/mono-interface-icons/) are public domain
-* Setting the onboard RGB-LED to random rainbow colors uses code fragments from the [FastLED library](https://fastled.io/), which is MIT license
+* Setting the onboard RGB-LED to random rainbow colors uses the conversion routines from [FastLED](https://github.com/FastLED/FastLED), which is MIT license
 
 ## How does it work?
 
@@ -37,6 +37,7 @@ Flash the firmaware to your board. Connect to the new Access-Point (LEDPortal) a
 
 The state of the onboard LED is toggled (off/on/blinking) when clicking the image area.
 When your board features an RGB-LED, then random colors are used.
+As usual, the brigthness of the individual LEDs within the RGB-LED are unbalanced. An adjustment was eyeballed and implmented using FastLED's conversion routines.   
 
 Even though setting the LED state is extremely fast, I sprinkled in some preemptive tasks ([FreeRTOS](https://www.freertos.org/)) that are hidden in cooperative tasks ([TaskScheduler](https://github.com/arkhipenko/TaskScheduler)) and thus use the same simple interface for signaling their status.
 Overkill fur sure, but see: [Why do I need it?](#why-do-i-need-it) 

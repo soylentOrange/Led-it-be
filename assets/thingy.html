@@ -337,7 +337,7 @@
 
       var led_content_state = led_content_state_enum.not_initialized
       var led_images = {
-        images: [
+        led_states: [
           {
             name: "Off",
             src: "data:image/svg+xml;base64," + btoa(led_off_svg),
@@ -365,21 +365,21 @@
         console.log("led_content_area onclick")
         console.log("led_content_state: " + led_content_state)
 
-        if (led_images.images.length == 1) return
+        if (led_images.led_states.length == 1) return
 
         if (led_content_state == led_content_state_enum.idle) {
-          if (led_images.images.length > ++led_state_idx) {
+          if (led_images.led_states.length > ++led_state_idx) {
             await putLEDContent(
-              led_images.images[led_state_idx].name,
-              led_images.images[led_state_idx].src,
-              led_images.images[led_state_idx].state_idx,
+              led_images.led_states[led_state_idx].name,
+              led_images.led_states[led_state_idx].src,
+              led_images.led_states[led_state_idx].state_idx,
             )
           } else {
             led_state_idx = 0
             await putLEDContent(
-              led_images.images[led_state_idx].name,
-              led_images.images[led_state_idx].src,
-              led_images.images[led_state_idx].state_idx,
+              led_images.led_states[led_state_idx].name,
+              led_images.led_states[led_state_idx].src,
+              led_images.led_states[led_state_idx].state_idx,
             )
           }
         }
@@ -425,6 +425,24 @@
         doSomethingWithThingy("/clearwifi")
       })
 
+      // fetch the led_states.json (stored in littleFS)
+      async function getStatesList() {
+        try {
+          const response = await fetch("/led_states.json")
+          if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`)
+          }
+
+          const json = await response.json()
+          json.led_states.forEach((element) => {
+            led_images.led_states.push(element)
+          })
+          console.log(led_images)
+        } catch (error) {
+          console.error(error.message)
+        }
+      }
+
       // fetch the LED state (thingy will return a json)
       async function getLEDState() {
         console.log("getLEDState")
@@ -447,7 +465,7 @@
       }
 
       // prepare the main view before getting the initial state of the LED
-      // also, fetch the json listing all of the available images in littleFS
+      // also, fetch the json listing all of the available led_states in littleFS
       async function prepareGetLEDContent() {
         led_content_info.innerHTML = "Processing..."
         led_content.style.display = "none"
@@ -459,6 +477,9 @@
         // show board name and build DateTime
         info_text_board.innerHTML = await getInfo("/boardname") 
         info_text_build.innerHTML = await getInfo("/buildtime")
+        
+        // get list of additional led_states
+        await getStatesList()
       }
 
       // get some info on what is shown right now by the LED
@@ -485,15 +506,15 @@
             getLEDContent()
           }, 100)
         } else {
-          if (led_images.images.length <= 1) {
+          if (led_images.led_states.length <= 1) {
             help_text.innerHTML = "Nothing more to show than an unpowered LED..."
           } else {
             help_text.innerHTML =
               "Click to toggle the LED."
           }
           reflectLEDContent(
-            led_images.images[led_state_idx].name,
-            led_images.images[led_state_idx].src,
+            led_images.led_states[led_state_idx].name,
+            led_images.led_states[led_state_idx].src,
           )
         }
       }
@@ -506,7 +527,7 @@
         led_content.style.display = "block"
         led_loader.style.display = "none"
         led_content.style.cursor =
-          led_images.images.length <= 1 ? "not-allowed" : "pointer"
+          led_images.led_states.length <= 1 ? "not-allowed" : "pointer"
       }
 
       // set a new LED state (static on/off of -later- LED animation) to be shown
@@ -606,7 +627,7 @@
               "Something went wrong: device is not initialized!"
             break
           default:
-            if (led_images.images.length <= 1) {
+            if (led_images.led_states.length <= 1) {
               help_text.innerHTML = "Nothing more to show than an unpowered LED..."
               led_content.style.cursor = "not-allowed"
             } else {
