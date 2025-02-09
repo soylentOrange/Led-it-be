@@ -8,5 +8,5 @@
 #include <SafeBootOTAConnect.h>
 
 // in main.cpp
-extern AsyncWebServer webServer; 
+extern AsyncWebServer webServer;
 extern SafeBootOTAConnect otaConnect;

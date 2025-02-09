@@ -7,17 +7,17 @@
 #include <TaskSchedulerDeclarations.h>
 
 namespace Soylent {
-    class ESPConnectClass {
+  class ESPConnectClass {
     public:
-        ESPConnectClass(Mycila::ESPConnect& espConnect);
-        void begin(Scheduler* scheduler);
-        void end();
-        void clearConfiguration();
+      ESPConnectClass(Soylent::ESP32Connect& espConnect);
+      void begin(Scheduler* scheduler);
+      void end();
+      void clearConfiguration();
 
     private:
-        Task* _espConnectTask;
-        void _espConnectCallback();
-        Scheduler* _scheduler;
-        Mycila::ESPConnect* _espConnect;
-    };
+      Task* _espConnectTask;
+      void _espConnectCallback();
+      Scheduler* _scheduler;
+      Soylent::ESP32Connect* _espConnect;
+  };
 } // namespace Soylent

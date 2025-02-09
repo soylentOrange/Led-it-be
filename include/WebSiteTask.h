@@ -7,22 +7,22 @@
 #include <TaskSchedulerDeclarations.h>
 
 namespace Soylent {
-    class WebSiteClass {
+  class WebSiteClass {
     public:
-        WebSiteClass(AsyncWebServer& webServer);
-        void begin(Scheduler* scheduler);
-        void end();
+      explicit WebSiteClass(AsyncWebServer& webServer);
+      void begin(Scheduler* scheduler);
+      void end();
 
     private:
-        void _webSiteCallback();
-        AsyncCallbackJsonWebHandler* _setLEDHandler;
-        Scheduler* _scheduler;
-        AsyncWebServer* _webServer;
-        int32_t _ledStateCount;
-        #ifdef RGB_BUILTIN
-            bool _fsMounted = false;     
-            JsonDocument* _ledStatesJson;
-        #endif   
-        int32_t _ledStateIdx;
-    };
+      void _webSiteCallback();
+      AsyncCallbackJsonWebHandler* _setLEDHandler;
+      Scheduler* _scheduler;
+      AsyncWebServer* _webServer;
+      int32_t _ledStateCount;
+#ifdef RGB_BUILTIN
+      bool _fsMounted = false;
+      JsonDocument* _ledStatesJson;
+#endif
+      int32_t _ledStateIdx;
+  };
 } // namespace Soylent
