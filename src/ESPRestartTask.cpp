@@ -31,7 +31,7 @@ void Soylent::ESPRestartClass::_cleanupCallback() {
   // Do some cleanup...
   WebSite.end();
   WebServer.end();
-  ESPConnect.end();
+  ESPNetwork.end();
 
   // ...and finally, the Restart-Task can be enabled subsequently
   _restartTask->enableDelayed(_delayBeforeRestart);

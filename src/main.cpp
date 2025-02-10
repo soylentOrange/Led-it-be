@@ -8,12 +8,10 @@
 
 // Create the WebServer, ESPConnect, Task-Scheduler,... here
 AsyncWebServer webServer(HTTP_PORT);
-// TODO(@soylentorange): move espConnect to ESPConnectClass
-Soylent::ESP32Connect espConnect(webServer);
 Scheduler scheduler;
 Soylent::ESPRestartClass ESPRestart;
-Soylent::ESPConnectClass ESPConnect(espConnect);
-Soylent::EventHandlerClass EventHandler(webServer, espConnect);
+Soylent::ESPNetworkClass ESPNetwork(webServer);
+Soylent::EventHandlerClass EventHandler(ESPNetwork);
 Soylent::WebServerClass WebServer(webServer);
 Soylent::WebSiteClass WebSite(webServer);
 Soylent::LedClass Led;
@@ -75,7 +73,7 @@ void setup() {
   ESPRestart.begin(&scheduler);
 
   // Add ESPConnect-Task to Scheduler
-  ESPConnect.begin(&scheduler);
+  ESPNetwork.begin(&scheduler);
 
   // Add EventHandler to Scheduler
   // Will also spawn the WebServer and WebSite (when ESPConnect says so...)

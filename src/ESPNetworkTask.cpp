@@ -3,17 +3,17 @@
  * Copyright (C) 2024 Robert Wendlandt
  */
 #include <thingy.h>
-#define TAG "ESPConnect"
+#define TAG "ESPNetwork"
 
-Soylent::ESPConnectClass::ESPConnectClass(Soylent::ESP32Connect& espConnect)
-    : _espConnectTask(nullptr), _scheduler(nullptr), _espConnect(&espConnect) {
+Soylent::ESPNetworkClass::ESPNetworkClass(AsyncWebServer& webServer)
+    : _espConnectTask(nullptr), _scheduler(nullptr), _webServer(&webServer), _espConnect(webServer) {
 }
 
-void Soylent::ESPConnectClass::begin(Scheduler* scheduler) {
+void Soylent::ESPNetworkClass::begin(Scheduler* scheduler) {
   LOGD(TAG, "Schedule ESPConnect...");
   // stop possibly running espConnect first
-  if (_espConnect->getState() != Soylent::ESP32Connect::State::NETWORK_DISABLED)
-    _espConnect->end();
+  if (_espConnect.getState() != Soylent::ESP32Connect::State::NETWORK_DISABLED)
+    _espConnect.end();
 
   // get some info from espconnect's preferences
   Preferences preferences;
@@ -31,11 +31,11 @@ void Soylent::ESPConnectClass::begin(Scheduler* scheduler) {
   }
 
   // configure and begin espConnect
-  _espConnect->setAutoRestart(true);
-  _espConnect->setBlocking(false);
-  _espConnect->setCaptivePortalTimeout(ESPCONNECT_TIMEOUT_CAPTIVE_PORTAL);
-  _espConnect->setConnectTimeout(ESPCONNECT_TIMEOUT_CONNECT);
-  _espConnect->begin(APP_NAME, CAPTIVE_PORTAL_SSID, CAPTIVE_PORTAL_PASSWORD);
+  _espConnect.setAutoRestart(true);
+  _espConnect.setBlocking(false);
+  _espConnect.setCaptivePortalTimeout(ESPCONNECT_TIMEOUT_CAPTIVE_PORTAL);
+  _espConnect.setConnectTimeout(ESPCONNECT_TIMEOUT_CONNECT);
+  _espConnect.begin(APP_NAME, CAPTIVE_PORTAL_SSID, CAPTIVE_PORTAL_PASSWORD);
 
   // Task handling
   _scheduler = scheduler;
@@ -45,20 +45,24 @@ void Soylent::ESPConnectClass::begin(Scheduler* scheduler) {
   LOGD(TAG, "ESPConnect is scheduled for start...");
 }
 
-void Soylent::ESPConnectClass::end() {
+void Soylent::ESPNetworkClass::end() {
   LOGD(TAG, "Stopping ESPConnect...");
   _espConnectTask->disable();
-  _espConnect->end();
+  _espConnect.end();
   LOGD(TAG, "...done!");
 }
 
-void Soylent::ESPConnectClass::clearConfiguration() {
-  _espConnect->clearConfiguration();
+Soylent::ESP32Connect* Soylent::ESPNetworkClass::getESPConnect() {
+  return &_espConnect;
+}
+
+void Soylent::ESPNetworkClass::clearConfiguration() {
+  _espConnect.clearConfiguration();
 }
 
 // Loop espConnect
-void Soylent::ESPConnectClass::_espConnectCallback() {
-  _espConnect->loop();
+void Soylent::ESPNetworkClass::_espConnectCallback() {
+  _espConnect.loop();
 
   if (_espConnectTask->isFirstIteration()) {
     LOGD(TAG, "ESPConnect started and looping now!");

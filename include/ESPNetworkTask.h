@@ -7,17 +7,19 @@
 #include <TaskSchedulerDeclarations.h>
 
 namespace Soylent {
-  class ESPConnectClass {
+  class ESPNetworkClass {
     public:
-      ESPConnectClass(Soylent::ESP32Connect& espConnect);
+      explicit ESPNetworkClass(AsyncWebServer& webServer);
       void begin(Scheduler* scheduler);
       void end();
       void clearConfiguration();
+      Soylent::ESP32Connect* getESPConnect();
 
     private:
       Task* _espConnectTask;
       void _espConnectCallback();
       Scheduler* _scheduler;
-      Soylent::ESP32Connect* _espConnect;
+      AsyncWebServer* _webServer;
+      Soylent::ESP32Connect _espConnect;
   };
 } // namespace Soylent
