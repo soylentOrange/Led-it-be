@@ -22,7 +22,7 @@ void Soylent::ESPRestartClass::restart() {
   _cleanupBeforeRestartTask->enable();
 }
 
-void Soylent::ESPRestartClass::restartDelayed(unsigned long delayBeforeCleanup = 500, unsigned long delayBeforeRestart = 500) {
+void Soylent::ESPRestartClass::restartDelayed(uint32_t delayBeforeCleanup = 500, uint32_t delayBeforeRestart = 500) {
   _delayBeforeRestart = delayBeforeRestart;
   _cleanupBeforeRestartTask->enableDelayed(delayBeforeCleanup);
 }

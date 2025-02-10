@@ -8,6 +8,7 @@
 
 // Create the WebServer, ESPConnect, Task-Scheduler,... here
 AsyncWebServer webServer(HTTP_PORT);
+// TODO(@soylentorange): move espConnect to ESPConnectClass
 Soylent::ESP32Connect espConnect(webServer);
 Scheduler scheduler;
 Soylent::ESPRestartClass ESPRestart;
@@ -45,6 +46,7 @@ void setup() {
   extern const uint8_t logo_safeboot_end[] asm("_binary__pio_assets_logo_safeboot_svg_gz_end");
   Preferences preferences;
   preferences.begin("safeboot", false);
+  // TODO(soylentOrange): update logic to not always rewrite...
   if (preferences.getString("build") != static_cast<String>(__COMPILED_BUILD_TIMESTAMP__)) {
     preferences.putString("build", __COMPILED_BUILD_TIMESTAMP__);
     preferences.putString("app_name", APP_NAME);

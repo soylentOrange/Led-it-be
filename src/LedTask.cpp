@@ -48,7 +48,6 @@ void Soylent::LedClass::begin(Scheduler* scheduler) {
 }
 
 void Soylent::LedClass::end() {
-
   LOGD(TAG, "Shutting down LED...");
   if (_async_task_handle != nullptr) {
     vTaskDelete(_async_task_handle);

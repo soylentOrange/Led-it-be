@@ -12,14 +12,14 @@ namespace Soylent {
       ESPRestartClass();
       void begin(Scheduler* scheduler);
       void restart();
-      void restartDelayed(unsigned long delayBeforeCleanup, unsigned long delayBeforeRestart);
+      void restartDelayed(uint32_t delayBeforeCleanup, uint32_t delayBeforeRestart);
 
     private:
       Task* _cleanupBeforeRestartTask;
       Task* _restartTask;
       void _cleanupCallback();
       void _restartCallback();
-      unsigned long _delayBeforeRestart;
+      uint32_t _delayBeforeRestart;
       Scheduler* _scheduler;
   };
 } // namespace Soylent
