@@ -17,7 +17,7 @@
   #include <FastLED.h>
 #endif
 
-#include <ESPConnectTask.h>
+#include <ESPNetworkTask.h>
 #include <ESPRestartTask.h>
 #include <EventHandlerTask.h>
 #include <LedTask.h>
@@ -26,7 +26,7 @@
 
 // in main.cpp
 extern Soylent::ESPRestartClass ESPRestart;
-extern Soylent::ESPConnectClass ESPConnect;
+extern Soylent::ESPNetworkClass ESPNetwork;
 extern Soylent::EventHandlerClass EventHandler;
 extern Soylent::WebServerClass WebServer;
 extern Soylent::WebSiteClass WebSite;

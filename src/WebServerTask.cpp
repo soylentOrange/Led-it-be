@@ -55,7 +55,7 @@ void Soylent::WebServerClass::_webServerCallback() {
   // clear persisted wifi config
   _webServer->on("/clearwifi", HTTP_GET, [&](AsyncWebServerRequest* request) {
     LOGW(TAG, "Clearing WiFi configuration...");
-    ESPConnect.clearConfiguration();
+    ESPNetwork.clearConfiguration();
     LOGW(TAG, TAG, "Restarting!");
     ESPRestart.restartDelayed(500, 500); // start task for delayed restart
     AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", "WiFi credentials are gone! Restarting now...");

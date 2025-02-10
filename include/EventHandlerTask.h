@@ -10,7 +10,7 @@
 namespace Soylent {
   class EventHandlerClass {
     public:
-      EventHandlerClass(AsyncWebServer& webServer, Soylent::ESP32Connect& espConnect);
+      explicit EventHandlerClass(Soylent::ESPNetworkClass& espNetwork);
       void begin(Scheduler* scheduler);
       void end();
       Soylent::ESP32Connect::State getState();
@@ -19,7 +19,6 @@ namespace Soylent {
       void _stateCallback(Soylent::ESP32Connect::State state);
       Soylent::ESP32Connect::State _state;
       Scheduler* _scheduler;
-      AsyncWebServer* _webServer;
-      Soylent::ESP32Connect* _espConnect;
+      Soylent::ESPNetworkClass* _espNetwork;
   };
 } // namespace Soylent

@@ -5,23 +5,23 @@
 #include <thingy.h>
 #define TAG "EventHandler"
 
-Soylent::EventHandlerClass::EventHandlerClass(AsyncWebServer& webServer, Soylent::ESP32Connect& espConnect)
-    : _state(Soylent::ESP32Connect::State::NETWORK_DISABLED), _scheduler(nullptr), _webServer(&webServer), _espConnect(&espConnect) {
+Soylent::EventHandlerClass::EventHandlerClass(Soylent::ESPNetworkClass& espNetwork)
+    : _state(Soylent::ESP32Connect::State::NETWORK_DISABLED), _scheduler(nullptr), _espNetwork(&espNetwork) {
 }
 
 void Soylent::EventHandlerClass::begin(Scheduler* scheduler) {
-  _state = _espConnect->getState();
+  _state = _espNetwork->getESPConnect()->getState();
 
   // Task handling
   _scheduler = scheduler;
 
   // Register Callback to espConnect
-  _espConnect->listen([&](__unused Soylent::ESP32Connect::State previous, Soylent::ESP32Connect::State state) { _stateCallback(state); });
+  _espNetwork->getESPConnect()->listen([&](__unused Soylent::ESP32Connect::State previous, Soylent::ESP32Connect::State state) { _stateCallback(state); });
 }
 
 void Soylent::EventHandlerClass::end() {
   LOGD(TAG, "Disabling EventHandler...");
-  _espConnect->listen(nullptr);
+  _espNetwork->getESPConnect()->listen(nullptr);
   _state = Soylent::ESP32Connect::State::NETWORK_DISABLED;
 }
 
@@ -37,7 +37,7 @@ void Soylent::EventHandlerClass::_stateCallback(Soylent::ESP32Connect::State sta
     case Soylent::ESP32Connect::State::NETWORK_CONNECTED:
       LOGI(TAG, "--> Connected to network...");
       yield();
-      LOGI(TAG, "IPAddress: %s", _espConnect->getIPAddress().toString().c_str());
+      LOGI(TAG, "IPAddress: %s", _espNetwork->getESPConnect()->getIPAddress().toString().c_str());
       WebServer.begin(_scheduler);
       yield();
       WebSite.begin(_scheduler);
@@ -46,8 +46,8 @@ void Soylent::EventHandlerClass::_stateCallback(Soylent::ESP32Connect::State sta
     case Soylent::ESP32Connect::State::AP_STARTED:
       LOGI(TAG, "--> Created AP...");
       yield();
-      LOGI(TAG, "SSID: %s", _espConnect->getAccessPointSSID().c_str());
-      LOGI(TAG, "IPAddress: %s", _espConnect->getIPAddress().toString().c_str());
+      LOGI(TAG, "SSID: %s", _espNetwork->getESPConnect()->getAccessPointSSID().c_str());
+      LOGI(TAG, "IPAddress: %s", _espNetwork->getESPConnect()->getIPAddress().toString().c_str());
       WebServer.begin(_scheduler);
       yield();
       WebSite.begin(_scheduler);
@@ -56,8 +56,8 @@ void Soylent::EventHandlerClass::_stateCallback(Soylent::ESP32Connect::State sta
     case Soylent::ESP32Connect::State::PORTAL_STARTED:
       LOGI(TAG, "--> Started Captive Portal...");
       yield();
-      LOGI(TAG, "SSID: %s", _espConnect->getAccessPointSSID().c_str());
-      LOGI(TAG, "IPAddress: %s", _espConnect->getIPAddress().toString().c_str());
+      LOGI(TAG, "SSID: %s", _espNetwork->getESPConnect()->getAccessPointSSID().c_str());
+      LOGI(TAG, "IPAddress: %s", _espNetwork->getESPConnect()->getIPAddress().toString().c_str());
       WebServer.begin(_scheduler);
       break;
 
@@ -69,7 +69,7 @@ void Soylent::EventHandlerClass::_stateCallback(Soylent::ESP32Connect::State sta
 
     case Soylent::ESP32Connect::State::PORTAL_COMPLETE: {
       LOGI(TAG, "--> Captive Portal has ended, auto-save the configuration...");
-      auto config = _espConnect->getConfig();
+      auto config = _espNetwork->getESPConnect()->getConfig();
       LOGD(TAG, "ap: %d", config.apMode);
       LOGD(TAG, "wifiSSID: %s", config.wifiSSID.c_str());
       LOGD(TAG, "wifiPassword: %s", config.wifiPassword.c_str());
