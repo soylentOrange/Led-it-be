@@ -13,7 +13,6 @@
 #ifdef RGB_BUILTIN
   #include <FS.h>
   #include <LittleFS.h>
-  // #include <ColorSpace.h>
   #include <FastLED.h>
 #endif
 
