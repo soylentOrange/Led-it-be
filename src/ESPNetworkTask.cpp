@@ -3,6 +3,7 @@
  * Copyright (C) 2024 Robert Wendlandt
  */
 #include <thingy.h>
+#include <string>
 #define TAG "ESPNetwork"
 
 Soylent::ESPNetworkClass::ESPNetworkClass(AsyncWebServer& webServer)

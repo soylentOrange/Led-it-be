@@ -3,6 +3,7 @@
  * Copyright (C) 2024-2025 Robert Wendlandt
  */
 #include <thingy.h>
+#include <string>
 #define TAG "WebSite"
 
 // gzipped assets

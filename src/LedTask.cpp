@@ -3,6 +3,8 @@
  * Copyright (C) 2024-2025 Robert Wendlandt
  */
 #include <thingy.h>
+#include <memory>
+#include <utility>
 #define TAG "LED"
 
 // default to LED_BUILTIN
@@ -252,7 +254,6 @@ void Soylent::LedClass::_setLedCallback() {
   // allocate and assemble the async parameters in a shared_ptr
   auto p = std::make_shared<LEDTaskParams>(&_srBusy, &_srAnimated, _ledState, _ledPin, _rgbLed, _timeConstant, 0);
   if (p) {
-
     // create the FreeRTOS-Task
     customTaskCreateUniversal(_async_setLedTask, "setLedTask", CONFIG_THINGY_TASKS_STACK_SIZE,
                               // pass the underlying pointer to LEDTaskParams from within shared_ptr to the FreeRTOS-task
