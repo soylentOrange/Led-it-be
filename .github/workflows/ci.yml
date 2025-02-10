@@ -48,9 +48,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: espressif32@6.10.0
-            board: esp32dev
-
           - platform: https://github.com/pioarduino/platform-espressif32/releases/download/53.03.11/platform-espressif32.zip
             board: esp32dev
 
