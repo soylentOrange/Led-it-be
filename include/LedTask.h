@@ -5,6 +5,7 @@
 #pragma once
 
 #include <TaskSchedulerDeclarations.h>
+#include <FastLED.h>
 
 // plain simple led-states (off/on/blink) more might be added from led_states.json
 #define LED_STATES_PLAIN   3
