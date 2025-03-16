@@ -48,7 +48,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: https://github.com/pioarduino/platform-espressif32/releases/download/53.03.11/platform-espressif32.zip
+          - platform: https://github.com/pioarduino/platform-espressif32/releases/download/stable/platform-espressif32.zip
             board: lolin_s2_mini
 
     steps:
