@@ -1,6 +1,7 @@
 {
     "led_states": 
     [ 
-        {"name": "Show the rainbow!", "src": "/images/rainbow.svg", "state_idx": 3}
+        {"name": "Show the rainbow!", "src": "/images/rainbow.svg", "state_idx": 3},
+        {"name": "Manual Mode", "src": "/images/repeat.svg", "state_idx": 4, "fill": "gray"}
     ]
 }
