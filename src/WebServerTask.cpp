@@ -45,12 +45,14 @@ void Soylent::WebServerClass::_webServerCallback() {
   // serve the logo (for captive portal)
   _webServer->on("/logo", HTTP_GET, [&](AsyncWebServerRequest* request) {
               LOGD(TAG, "Serve captive logo...");
-              AsyncWebServerResponse* response = request->beginResponse(200, "image/svg+xml", logo_start, logo_end - logo_start);
+              auto* response = request->beginResponse(200, "image/svg+xml", logo_start, logo_end - logo_start);
               response->addHeader("Content-Encoding", "gzip");
               response->addHeader("Cache-Control", "public, max-age=900");
               request->send(response);
             })
-    .setFilter([&](__unused AsyncWebServerRequest* request) { return EventHandler.getState() == Soylent::ESP32Connect::State::PORTAL_STARTED; });
+    .setFilter([&](__unused AsyncWebServerRequest* request) {
+      return EventHandler.getState() == Soylent::ESPConnect::State::PORTAL_STARTED;
+    });
 
   // clear persisted wifi config
   _webServer->on("/clearwifi", HTTP_GET, [&](AsyncWebServerRequest* request) {
@@ -58,7 +60,7 @@ void Soylent::WebServerClass::_webServerCallback() {
     ESPNetwork.clearConfiguration();
     LOGW(TAG, TAG, "Restarting!");
     ESPRestart.restartDelayed(500, 500); // start task for delayed restart
-    AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", "WiFi credentials are gone! Restarting now...");
+    auto* response = request->beginResponse(200, "text/plain", "WiFi credentials are gone! Restarting now...");
     request->send(response);
   });
 
@@ -66,29 +68,31 @@ void Soylent::WebServerClass::_webServerCallback() {
   _webServer->on("/restart", HTTP_GET, [&](AsyncWebServerRequest* request) {
     LOGW(TAG, "Restarting!");
     ESPRestart.restartDelayed(500, 500); // start task for delayed restart
-    AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", "Restarting now...");
+    auto* response = request->beginResponse(200, "text/plain", "Restarting now...");
     request->send(response);
   });
 
   // restart from safeboot-partition
   _webServer->on("/safeboot", HTTP_GET, [&](AsyncWebServerRequest* request) {
     LOGW(TAG, "Restart from safeboot...");
-    const esp_partition_t* partition = esp_partition_find_first(esp_partition_type_t::ESP_PARTITION_TYPE_APP, esp_partition_subtype_t::ESP_PARTITION_SUBTYPE_APP_FACTORY, "safeboot");
+    const esp_partition_t* partition = esp_partition_find_first(esp_partition_type_t::ESP_PARTITION_TYPE_APP,
+                                                                esp_partition_subtype_t::ESP_PARTITION_SUBTYPE_APP_FACTORY,
+                                                                "safeboot");
     if (partition) {
       esp_ota_set_boot_partition(partition);
       ESPRestart.restartDelayed(500, 500); // start task for delayed restart
-      AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", "Restarting into SafeBoot now...");
+      auto* response = request->beginResponse(200, "text/plain", "Restarting into SafeBoot now...");
       request->send(response);
     } else {
       LOGW(TAG, "SafeBoot partition not found");
       ESPRestart.restartDelayed(500, 500); // start task for delayed restart
-      AsyncWebServerResponse* response = request->beginResponse(502, "text/plain", "SafeBoot partition not found!");
+      auto* response = request->beginResponse(502, "text/plain", "SafeBoot partition not found!");
       request->send(response);
     }
   });
 
   // Set 404-handler only when the captive portal is not shown
-  if (EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED) {
+  if (EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED) {
     LOGD(TAG, "Register 404 handler in WebServer");
     _webServer->onNotFound([](AsyncWebServerRequest* request) {
       LOGW(TAG, "Send 404 on request for %s", request->url().c_str());

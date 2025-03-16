@@ -36,7 +36,7 @@ void SafeBootOTAConnect::begin(const char* hostname, const char* apSSID, const c
   std::string ssid;
   std::string password;
   Preferences preferences;
-  preferences.begin("ESP32Connect", true);
+  preferences.begin("ESPConnect", true);
   if (preferences.isKey("ssid"))
     ssid = preferences.getString("ssid").c_str();
   else

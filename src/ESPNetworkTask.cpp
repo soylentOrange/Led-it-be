@@ -13,7 +13,7 @@ Soylent::ESPNetworkClass::ESPNetworkClass(AsyncWebServer& webServer)
 void Soylent::ESPNetworkClass::begin(Scheduler* scheduler) {
   LOGD(TAG, "Schedule ESPConnect...");
   // stop possibly running espConnect first
-  if (_espConnect.getState() != Soylent::ESP32Connect::State::NETWORK_DISABLED)
+  if (_espConnect.getState() != Soylent::ESPConnect::State::NETWORK_DISABLED)
     _espConnect.end();
 
   // get some info from espconnect's preferences
@@ -53,7 +53,7 @@ void Soylent::ESPNetworkClass::end() {
   LOGD(TAG, "...done!");
 }
 
-Soylent::ESP32Connect* Soylent::ESPNetworkClass::getESPConnect() {
+Soylent::ESPConnect* Soylent::ESPNetworkClass::getESPConnect() {
   return &_espConnect;
 }
 

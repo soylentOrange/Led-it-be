@@ -13,11 +13,11 @@ namespace Soylent {
       explicit EventHandlerClass(Soylent::ESPNetworkClass& espNetwork);
       void begin(Scheduler* scheduler);
       void end();
-      Soylent::ESP32Connect::State getState();
+      Soylent::ESPConnect::State getState();
 
     private:
-      void _stateCallback(Soylent::ESP32Connect::State state);
-      Soylent::ESP32Connect::State _state;
+      void _stateCallback(Soylent::ESPConnect::State state);
+      Soylent::ESPConnect::State _state;
       Scheduler* _scheduler;
       Soylent::ESPNetworkClass* _espNetwork;
   };

@@ -4,11 +4,12 @@
  */
 #pragma once
 
+#include <ESP32Connect.h>
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
-#include <ESP32Connect.h>
 #include <Preferences.h>
 #include <string>
+#include <CRCx.h>
 
 #ifdef RGB_BUILTIN
   #include <FS.h>
@@ -46,7 +47,7 @@ namespace Soylent {
     }
     cont.push_back(str.substr(previous, current - previous));
   }
-}
+} // namespace Soylent
 
 // Shorthands for Logging
 #ifdef THINGY_DEBUG

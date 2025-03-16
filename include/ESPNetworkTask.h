@@ -13,13 +13,13 @@ namespace Soylent {
       void begin(Scheduler* scheduler);
       void end();
       void clearConfiguration();
-      Soylent::ESP32Connect* getESPConnect();
+      Soylent::ESPConnect* getESPConnect();
 
     private:
       Task* _espConnectTask;
       void _espConnectCallback();
       Scheduler* _scheduler;
       AsyncWebServer* _webServer;
-      Soylent::ESP32Connect _espConnect;
+      Soylent::ESPConnect _espConnect;
   };
 } // namespace Soylent

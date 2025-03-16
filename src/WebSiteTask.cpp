@@ -2,6 +2,7 @@
 /*
  * Copyright (C) 2024-2025 Robert Wendlandt
  */
+
 #include <thingy.h>
 #include <string>
 #define TAG "WebSite"
@@ -27,9 +28,11 @@ extern char* __COMPILED_BUILD_TIMESTAMP__;
 Soylent::WebSiteClass::WebSiteClass(AsyncWebServer& webServer)
     : _ledStateIdx(0), _setLEDHandler(nullptr), _scheduler(nullptr), _ledStateCount(LED_STATES_PLAIN)
 #ifdef RGB_BUILTIN
-      , _fsMounted(false), _ledStatesJson(nullptr)
+      ,
+      _fsMounted(false), _ledStatesJson(nullptr)
 #endif
-      , _webServer(&webServer) {
+      ,
+      _webServer(&webServer) {
 }
 
 void Soylent::WebSiteClass::begin(Scheduler* scheduler) {
@@ -103,9 +106,13 @@ void Soylent::WebSiteClass::_webSiteCallback() {
   _setLEDHandler = new AsyncCallbackJsonWebHandler("/led/state");
   _setLEDHandler->setMethod(HTTP_PUT);
 #ifdef RGB_BUILTIN
-  _setLEDHandler->setFilter([&](__unused AsyncWebServerRequest* request) { return (EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED && _fsMounted); });
+  _setLEDHandler->setFilter([&](__unused AsyncWebServerRequest* request) {
+    return (EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED && _fsMounted);
+  });
 #else
-  _setLEDHandler->setFilter([&](__unused AsyncWebServerRequest* request) { return (EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED); });
+  _setLEDHandler->setFilter([&](__unused AsyncWebServerRequest* request) {
+    return (EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED);
+  });
 #endif
   _setLEDHandler->onRequest([&](AsyncWebServerRequest* request, JsonVariant& json) {
     LOGD(TAG, "Serve (put) /led/state");
@@ -168,7 +175,7 @@ void Soylent::WebSiteClass::_webSiteCallback() {
   // serve request for setting led state
   _webServer->on("/led/state", HTTP_GET, [&](AsyncWebServerRequest* request) {
               // LOGD(TAG, "Serve (get) /led/state");
-              AsyncResponseStream* response = request->beginResponseStream("application/json");
+              auto* response = request->beginResponseStream("application/json");
               JsonDocument doc;
               JsonObject root = doc.to<JsonObject>();
 
@@ -177,82 +184,118 @@ void Soylent::WebSiteClass::_webSiteCallback() {
               serializeJson(root, *response);
               request->send(response);
             })
-    .setFilter([&](__unused AsyncWebServerRequest* request) { return EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED; });
+    .setFilter([&](__unused AsyncWebServerRequest* request) {
+      return EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED;
+    });
 
   // serve the logo (for main page)
   _webServer->on("/thingy_logo", HTTP_GET, [](AsyncWebServerRequest* request) {
               LOGD(TAG, "Serve thingy logo...");
-              AsyncWebServerResponse* response = request->beginResponse(200, "image/svg+xml", logo_thingy_start, logo_thingy_end - logo_thingy_start);
+              auto* response = request->beginResponse(200,
+                                                      "image/svg+xml",
+                                                      logo_thingy_start,
+                                                      logo_thingy_end - logo_thingy_start);
               response->addHeader("Content-Encoding", "gzip");
               response->addHeader("Cache-Control", "public, max-age=900");
               request->send(response);
             })
-    .setFilter([&](__unused AsyncWebServerRequest* request) { return EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED; });
+    .setFilter([&](__unused AsyncWebServerRequest* request) {
+      return EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED;
+    });
 
   // serve the favicon.svg
   _webServer->on("/favicon.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
               LOGD(TAG, "Serve favicon.svg...");
-              AsyncWebServerResponse* response = request->beginResponse(200, "image/svg+xml", favicon_svg_start, favicon_svg_end - favicon_svg_start);
+              auto* response = request->beginResponse(200,
+                                                      "image/svg+xml",
+                                                      favicon_svg_start,
+                                                      favicon_svg_end - favicon_svg_start);
               response->addHeader("Content-Encoding", "gzip");
               response->addHeader("Cache-Control", "public, max-age=900");
               request->send(response);
             })
-    .setFilter([&](__unused AsyncWebServerRequest* request) { return EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED; });
+    .setFilter([&](__unused AsyncWebServerRequest* request) {
+      return EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED;
+    });
 
   // serve the apple-touch-icon
   _webServer->on("/apple-touch-icon.png", HTTP_GET, [](AsyncWebServerRequest* request) {
               LOGD(TAG, "Serve apple-touch-icon.png...");
-              AsyncWebServerResponse* response = request->beginResponse(200, "image/png", touchicon_start, touchicon_end - touchicon_start);
+              auto* response = request->beginResponse(200,
+                                                      "image/png",
+                                                      touchicon_start,
+                                                      touchicon_end - touchicon_start);
               response->addHeader("Content-Encoding", "gzip");
               response->addHeader("Cache-Control", "public, max-age=900");
               request->send(response);
             })
-    .setFilter([&](__unused AsyncWebServerRequest* request) { return EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED; });
+    .setFilter([&](__unused AsyncWebServerRequest* request) {
+      return EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED;
+    });
 
   // serve the favicon.png
   _webServer->on("/favicon-96x96.png", HTTP_GET, [](AsyncWebServerRequest* request) {
               LOGD(TAG, "Serve favicon-96x96.png...");
-              AsyncWebServerResponse* response = request->beginResponse(200, "image/png", favicon_96_png_start, favicon_96_png_end - favicon_96_png_start);
+              auto* response = request->beginResponse(200,
+                                                      "image/png",
+                                                      favicon_96_png_start,
+                                                      favicon_96_png_end - favicon_96_png_start);
               response->addHeader("Content-Encoding", "gzip");
               response->addHeader("Cache-Control", "public, max-age=900");
               request->send(response);
             })
-    .setFilter([&](__unused AsyncWebServerRequest* request) { return EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED; });
+    .setFilter([&](__unused AsyncWebServerRequest* request) {
+      return EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED;
+    });
 
   // serve the favicon.png
   _webServer->on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest* request) {
               LOGD(TAG, "Serve favicon.ico...");
-              AsyncWebServerResponse* response = request->beginResponse(200, "image/x-icon", favicon_ico_start, favicon_ico_end - favicon_ico_start);
+              auto* response = request->beginResponse(200,
+                                                      "image/x-icon",
+                                                      favicon_ico_start,
+                                                      favicon_ico_end - favicon_ico_start);
               response->addHeader("Content-Encoding", "gzip");
               response->addHeader("Cache-Control", "public, max-age=900");
               request->send(response);
             })
-    .setFilter([&](__unused AsyncWebServerRequest* request) { return EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED; });
+    .setFilter([&](__unused AsyncWebServerRequest* request) {
+      return EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED;
+    });
 
   // serve boardname info
   _webServer->on("/boardname", HTTP_GET, [](AsyncWebServerRequest* request) {
               LOGD(TAG, "Serve boardname");
-              AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", __COMPILED_BUILD_BOARD__);
+              auto* response = request->beginResponse(200, "text/plain", __COMPILED_BUILD_BOARD__);
               request->send(response);
             })
-    .setFilter([&](__unused AsyncWebServerRequest* request) { return EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED; });
+    .setFilter([&](__unused AsyncWebServerRequest* request) {
+      return EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED;
+    });
 
   // serve boardname info
   _webServer->on("/buildtime", HTTP_GET, [](AsyncWebServerRequest* request) {
               LOGD(TAG, "Serve buildtime");
-              AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", __COMPILED_BUILD_TIMESTAMP__);
+              auto* response = request->beginResponse(200, "text/plain", __COMPILED_BUILD_TIMESTAMP__);
               request->send(response);
             })
-    .setFilter([&](__unused AsyncWebServerRequest* request) { return EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED; });
+    .setFilter([&](__unused AsyncWebServerRequest* request) {
+      return EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED;
+    });
 
-  // serve our home page here, yet only when the ESP32Connect portal is not shown
+  // serve our home page here, yet only when the ESPConnect portal is not shown
   _webServer->on("/", HTTP_GET, [&](AsyncWebServerRequest* request) {
               LOGD(TAG, "Serve...");
-              AsyncWebServerResponse* response = request->beginResponse(200, "text/html", thingy_html_start, thingy_html_end - thingy_html_start);
+              auto* response = request->beginResponse(200,
+                                                      "text/html",
+                                                      thingy_html_start,
+                                                      thingy_html_end - thingy_html_start);
               response->addHeader("Content-Encoding", "gzip");
               request->send(response);
             })
-    .setFilter([&](__unused AsyncWebServerRequest* request) { return EventHandler.getState() != Soylent::ESP32Connect::State::PORTAL_STARTED; });
+    .setFilter([&](__unused AsyncWebServerRequest* request) {
+      return EventHandler.getState() != Soylent::ESPConnect::State::PORTAL_STARTED;
+    });
 
   LOGD(TAG, "...done!");
 }
