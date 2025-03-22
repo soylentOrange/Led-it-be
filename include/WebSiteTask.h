@@ -23,6 +23,5 @@ namespace Soylent {
       bool _fsMounted = false;
       JsonDocument* _ledStatesJson;
 #endif
-      int32_t _ledStateIdx;
   };
 } // namespace Soylent

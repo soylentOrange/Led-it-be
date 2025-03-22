@@ -3,6 +3,7 @@
  * Copyright (C) 2024-2025 Robert Wendlandt
  */
 
+
 #include <thingy.h>
 #include <string>
 #define TAG "WebSite"
@@ -26,7 +27,7 @@ extern const char* __COMPILED_BUILD_BOARD__;
 extern char* __COMPILED_BUILD_TIMESTAMP__;
 
 Soylent::WebSiteClass::WebSiteClass(AsyncWebServer& webServer)
-    : _ledStateIdx(0), _setLEDHandler(nullptr), _scheduler(nullptr), _ledStateCount(LED_STATES_PLAIN)
+    : _setLEDHandler(nullptr), _scheduler(nullptr), _ledStateCount(LED_STATES_PLAIN)
 #ifdef RGB_BUILTIN
       ,
       _fsMounted(false), _ledStatesJson(nullptr)
@@ -130,20 +131,19 @@ void Soylent::WebSiteClass::_webSiteCallback() {
         case 0:
           // 0 is hardcoded to off
           LOGI(TAG, "Switch LED to off!");
-          Led.setLedState(Soylent::LedClass::LedState::OFF);
-          _ledStateIdx = led_state_idx;
+          Led.setLedMode(Soylent::LedClass::LedMode::OFF);
           break;
         case 1:
           // 1 is hardcoded to on
           LOGI(TAG, "Switch LED to on!");
-          Led.setLedState(Soylent::LedClass::LedState::ON);
-          _ledStateIdx = led_state_idx;
+          //Led.setLedMode(Soylent::LedClass::LedMode::ON);
+          Led.setLed(Soylent::LedClass::LedMode::ON, 55, false);
           break;
         case 2:
           // 2 is hardcoded to Blinking
           LOGI(TAG, "Switch LED to on and off and on and ...!");
-          Led.setLedState(Soylent::LedClass::LedState::BLINK);
-          _ledStateIdx = led_state_idx;
+          //Led.setLedMode(Soylent::LedClass::LedMode::BLINK);
+          Led.setLed(Soylent::LedClass::LedMode::BLINK, 128, false);
           break;
         case 3:
   // 3 is hardcoded to Rainbow
@@ -152,15 +152,23 @@ void Soylent::WebSiteClass::_webSiteCallback() {
   #else
           LOGI(TAG, "Show a boring rainbow...!");
   #endif
-          Led.setLedState(Soylent::LedClass::LedState::RAINBOW);
-          _ledStateIdx = led_state_idx;
+          Led.setLedMode(Soylent::LedClass::LedMode::RAINBOW);
+          break;
+
+        case 4:
+  // 4 is hardcoded to Manual mode
+  #ifdef LED_MANUAL_MODE
+          LOGI(TAG, "Enter Manual LED Mode!");
+          Led.setLedMode(Soylent::LedClass::LedMode::MANUAL);
+  #else
+          LOGI(TAG, "Enter DISABLED Manual LED Mode!");
+          Led.setLedMode(Soylent::LedClass::LedMode::OFF);
+  #endif
           break;
         default: {
           // show an something else?
-          LOGI(TAG, "I want to show something!");
-          // auto img_name = _imagesJson->as<JsonObject>()["images"].as<JsonArray>()[img_idx-1].as<JsonObject>()["src"];
-          // Display.showImage(img_name);
-          _ledStateIdx = led_state_idx;
+          LOGI(TAG, "I want to show something! But I can't");
+          Led.setLedMode(Soylent::LedClass::LedMode::OFF);
         }
       }
 
@@ -174,13 +182,15 @@ void Soylent::WebSiteClass::_webSiteCallback() {
 
   // serve request for setting led state
   _webServer->on("/led/state", HTTP_GET, [&](AsyncWebServerRequest* request) {
-              // LOGD(TAG, "Serve (get) /led/state");
+              //LOGD(TAG, "Serve (get) /led/state");
+              //LOGD(TAG, "Led.getLedMode: %d", static_cast<int8_t>(Led.getLedMode()));
+
               auto* response = request->beginResponseStream("application/json");
               JsonDocument doc;
               JsonObject root = doc.to<JsonObject>();
 
               root["state"] = "idle";
-              root["state_idx"] = _ledStateIdx;
+              root["state_idx"] = static_cast<int8_t>(Led.getLedMode());
               serializeJson(root, *response);
               request->send(response);
             })

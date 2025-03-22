@@ -2,6 +2,7 @@
 /*
  * Copyright (C) 2024-2025 Robert Wendlandt
  */
+
 #include <thingy.h>
 #include <memory>
 #include <utility>
@@ -9,10 +10,11 @@
 
 // default to LED_BUILTIN
 Soylent::LedClass::LedClass()
-    : _scheduler(nullptr), _ledState(Soylent::LedClass::LedState::NONE), _timeConstant(500), _async_task_handle(nullptr) {
+    : _ledStateTask(nullptr), _scheduler(nullptr), _ledMode(Soylent::LedClass::LedMode::NONE), _ledOn(false), _ledHue(0), _async_task_handle(nullptr) {
   _srBusy.setWaiting();
   _srInitialized.setWaiting();
   _srAnimated.signalComplete();
+  _xQueueLedState = xQueueCreate(10, sizeof(LedState));
 
 #ifdef LED_BUILTIN
   _ledPin = LED_BUILTIN;
@@ -28,10 +30,11 @@ Soylent::LedClass::LedClass()
 }
 
 Soylent::LedClass::LedClass(uint8_t LED_Pin, bool is_RGB)
-    : _scheduler(nullptr), _ledState(Soylent::LedClass::LedState::NONE), _timeConstant(500), _async_task_handle(nullptr), _ledPin(LED_Pin), _rgbLed(is_RGB) {
+    : _ledStateTask(nullptr), _scheduler(nullptr), _ledMode(Soylent::LedClass::LedMode::NONE), _ledOn(false), _ledHue(0), _async_task_handle(nullptr), _ledPin(LED_Pin), _rgbLed(is_RGB) {
   _srBusy.setWaiting();
   _srInitialized.setWaiting();
   _srAnimated.completed();
+  _xQueueLedState = xQueueCreate(10, sizeof(LedState));
 }
 
 void Soylent::LedClass::begin(Scheduler* scheduler) {
@@ -39,8 +42,13 @@ void Soylent::LedClass::begin(Scheduler* scheduler) {
   _srInitialized.setWaiting();
   _srAnimated.signalComplete();
   _scheduler = scheduler;
-  _ledState = Soylent::LedClass::LedState::NONE;
-  _timeConstant = 500;
+  _ledMode = Soylent::LedClass::LedMode::NONE;
+  _ledOn = false;
+  _ledHue = 0;
+
+  // run a task for receiving LED state changes
+  _ledStateTask = new Task(50, TASK_FOREVER, [&] { _ledStateCallback(); }, _scheduler, false, NULL, NULL, true);
+  _ledStateTask->enable();
 
   // create and run a task for initializing the LED
   Task* initializeLedTask = new Task(TASK_IMMEDIATE, TASK_ONCE, [&] { _initializeLedCallback(); }, _scheduler, false, NULL, NULL, true);
@@ -59,7 +67,7 @@ void Soylent::LedClass::end() {
   if (digitalRead(_ledPin) && _ledPin != -1) {
     digitalWrite(_ledPin, LOW);
   }
-
+  _ledStateTask->disable();
   _srBusy.setWaiting();
   _srInitialized.setWaiting();
   _srAnimated.signalComplete();
@@ -85,19 +93,41 @@ static bool customTaskCreateUniversal(
 #endif
 }
 
+// Receive state changes from the LED
+void Soylent::LedClass::_ledStateCallback() {
+  LedState rxLedState;
+  if (xQueueReceive(_xQueueLedState, &rxLedState, (TickType_t)0) == pdPASS) {
+
+    // Update private class variables
+    _ledHue = rxLedState.ledHue;
+    _ledOn = rxLedState.ledOn;
+
+    // // make sure callback is called before auto restart
+    // if (_externalLedStateCallback != nullptr)
+    //   _externalLedStateCallback(LedState(_ledMode, _ledHue, _ledOn), rxLedState);
+
+    LOGD(TAG, "LedMode: %d", _ledMode);
+    if (rxLedState.ledOn) {
+      LOGD(TAG, "Hue: %d", rxLedState.ledHue);
+    } else {
+      LOGD(TAG, "LED is off");
+    }
+  }
+}
+
 // Initialize the LED
 void Soylent::LedClass::_initializeLedCallback() {
   LOGD(TAG, "Initialize LED...");
 
   // set LED-pin to out?
-  _ledState = Soylent::LedClass::LedState::OFF;
+  _ledMode = Soylent::LedClass::LedMode::OFF;
 
   _srInitialized.signalComplete();
   LOGD(TAG, "...done!");
 
   // create and run a task for creating and running an async task for setting the LED...
   LOGD(TAG, "setting LED to off...");
-  _setLedCallback();
+  _setLedCallback(Soylent::LedClass::LedMode::OFF, 0, false, 0);
 }
 
 bool Soylent::LedClass::isInitialized() {
@@ -123,15 +153,27 @@ void Soylent::LedClass::_async_setLedTask(void* pvParameters) {
   auto params = static_cast<Soylent::LedClass::LEDTaskParams*>(pvParameters);
   // the LEDTaskParams are free'd after signalling _srBusy as complete
   // copy params (as they will be gone otherwise during blinking)
-  Soylent::LedClass::LEDTaskParams task_params(*params);
+  LedMode ledMode = params->ledMode;
+  uint8_t ledPin = params->ledPin;
+  bool rgbLed = params->rgbLed;
+  uint32_t timeConstant = params->timeConstant;
+  uint8_t ledHue = params->ledHue;
+  bool randomHue = params->randomHue;
+  QueueHandle_t xQueueLedState = params->xQueueLedState;
+
+  LOGD(TAG, "tc: %d", timeConstant);
   // adjust timeConstant to ticks
-  task_params.timeConstant /= portTICK_PERIOD_MS;
+  timeConstant /= portTICK_PERIOD_MS;
+  LOGD(TAG, "hue: %d", ledHue);
+  LOGD(TAG, "mode: %d", ledMode);
+  Soylent::LedClass::LedState ledState;
+  ledState.ledHue = ledHue;
 
   // No LED present
-  if (task_params.ledPin == -1) {
+  if (ledPin == -1) {
     taskENTER_CRITICAL(&cs_spinlock);
-    task_params.srAnimated->signalComplete();
-    task_params.srBusy->signalComplete();
+    params->srAnimated->signalComplete();
+    params->srBusy->signalComplete();
     taskEXIT_CRITICAL(&cs_spinlock);
 
     vTaskDelete(NULL);
@@ -141,106 +183,139 @@ void Soylent::LedClass::_async_setLedTask(void* pvParameters) {
   CRGB led_colorAdjustment = CRGB::computeAdjustment(128, CRGB(255, 85, 210), CRGB(UncorrectedTemperature));
 
   // run a blinking task?
-  if (task_params.ledState == Soylent::LedClass::LedState::BLINK) {
+  if (ledMode == Soylent::LedClass::LedMode::BLINK) {
     taskENTER_CRITICAL(&cs_spinlock);
-    task_params.srAnimated->setWaiting();
-    task_params.srBusy->signalComplete();
+    params->srAnimated->setWaiting();
+    params->srBusy->signalComplete();
     taskEXIT_CRITICAL(&cs_spinlock);
 
     for (;;) {
-      if (task_params.rgbLed) {
-        rgbLedWrite(task_params.ledPin, 0, 0, 0);
+      if (rgbLed) {
+        rgbLedWrite(ledPin, 0, 0, 0);
       } else {
-        digitalWrite(task_params.ledPin, LOW);
+        digitalWrite(ledPin, LOW);
       }
 
+      // Send out the message
+      ledState.ledOn = false;
+      xQueueSend(xQueueLedState, static_cast<void*>(&ledState), (TickType_t)0);
+
       // either just wait for time constant or terminate ourselves
-      if (ulTaskNotifyTake(true, task_params.timeConstant) == TERMINATE_YOURSELF) {
+      if (ulTaskNotifyTake(true, timeConstant) == TERMINATE_YOURSELF) {
         taskENTER_CRITICAL(&cs_spinlock);
-        task_params.srAnimated->signalComplete();
+        params->srAnimated->signalComplete();
         taskEXIT_CRITICAL(&cs_spinlock);
-        digitalWrite(task_params.ledPin, LOW);
+        digitalWrite(ledPin, LOW);
 
         vTaskDelete(NULL);
       }
 
-      if (task_params.rgbLed) {
+      if (rgbLed) {
         // create a random color from the rainbow (at half brightness)
-        task_params.hue = random(0, 255);
-        CRGB led_color(CHSV(task_params.hue, 240, 255));
+        if (randomHue) {
+          ledHue = random(0, 255);
+        }
+        CRGB led_color(CHSV(ledHue, DEFAULT_SAT, DEFAULT_VALUE));
         _adjustLed(&led_color, led_colorAdjustment);
-        rgbLedWrite(task_params.ledPin, led_color.red, led_color.green, led_color.blue);
-        LOGD(TAG, "hue: %d (%d, %d, %d)", task_params.hue, led_color.red, led_color.green, led_color.blue);
+        rgbLedWrite(ledPin, led_color.red, led_color.green, led_color.blue);
+
+        // Send out the message
+        ledState.ledHue = ledHue;
+        ledState.ledOn = true;
+        xQueueSend(xQueueLedState, static_cast<void*>(&ledState), (TickType_t)0);
+        // LOGD(TAG, "hue: %d (%d, %d, %d)", ledHue, led_color.red, led_color.green, led_color.blue);
       } else {
-        digitalWrite(task_params.ledPin, HIGH);
+        digitalWrite(ledPin, HIGH);
+
+        // Send out the message
+        ledState.ledOn = true;
+        xQueueSend(xQueueLedState, static_cast<void*>(&ledState), (TickType_t)0);
       }
 
       // either just wait for time constant or terminate ourselves
-      if (ulTaskNotifyTake(true, task_params.timeConstant) == TERMINATE_YOURSELF) {
+      if (ulTaskNotifyTake(true, timeConstant) == TERMINATE_YOURSELF) {
         taskENTER_CRITICAL(&cs_spinlock);
-        task_params.srAnimated->signalComplete();
+        params->srAnimated->signalComplete();
         taskEXIT_CRITICAL(&cs_spinlock);
-        digitalWrite(task_params.ledPin, LOW);
+        digitalWrite(ledPin, LOW);
 
         vTaskDelete(NULL);
       }
     }
-  } else if (task_params.ledState == Soylent::LedClass::LedState::RAINBOW) {
+  } else if (ledMode == Soylent::LedClass::LedMode::RAINBOW) {
     // run a rainbow task?
     taskENTER_CRITICAL(&cs_spinlock);
-    task_params.srAnimated->setWaiting();
-    task_params.srBusy->signalComplete();
+    params->srAnimated->setWaiting();
+    params->srBusy->signalComplete();
     taskEXIT_CRITICAL(&cs_spinlock);
 
+    // Send out the message
+    ledState.ledOn = true;
+    xQueueSend(xQueueLedState, static_cast<void*>(&ledState), (TickType_t)0);
+
     for (;;) {
-      if (task_params.rgbLed) {
+      if (rgbLed) {
         // loop through the the rainbow (at half brightness)
-        CRGB led_color(CHSV(task_params.hue, 240, 255));
+        CRGB led_color(CHSV(ledHue, DEFAULT_SAT, DEFAULT_VALUE));
         _adjustLed(&led_color, led_colorAdjustment);
-        task_params.hue++;
-        rgbLedWrite(task_params.ledPin, led_color.red, led_color.green, led_color.blue);
+        ledHue++;
+        rgbLedWrite(ledPin, led_color.red, led_color.green, led_color.blue);
       } else {
-        digitalWrite(task_params.ledPin, HIGH);
+        digitalWrite(ledPin, HIGH);
       }
 
       // either just wait for time constant or terminate ourselves
-      if (ulTaskNotifyTake(true, task_params.timeConstant) == TERMINATE_YOURSELF) {
+      if (ulTaskNotifyTake(true, timeConstant) == TERMINATE_YOURSELF) {
         taskENTER_CRITICAL(&cs_spinlock);
-        task_params.srAnimated->signalComplete();
+        params->srAnimated->signalComplete();
         taskEXIT_CRITICAL(&cs_spinlock);
-        digitalWrite(task_params.ledPin, LOW);
+        digitalWrite(ledPin, LOW);
 
         vTaskDelete(NULL);
       }
     }
   } else {
     // Just a one time setting here
-    if (task_params.rgbLed) {
-      if (task_params.ledState == Soylent::LedClass::LedState::OFF) {
-        rgbLedWrite(task_params.ledPin, 0, 0, 0);
+    if (rgbLed) {
+      if (ledMode == Soylent::LedClass::LedMode::OFF) {
+        rgbLedWrite(ledPin, 0, 0, 0);
+
+        // Send out the message
+        ledState.ledOn = false;
+        xQueueSend(xQueueLedState, static_cast<void*>(&ledState), (TickType_t)0);
       } else {
-        // create a random color from the rainbow (at half brightness)
-        task_params.hue = random(0, 255);
-        CRGB led_color(CHSV(task_params.hue, 240, 255));
+        if (randomHue) {
+          // create a random color from the rainbow (at half brightness)
+          ledHue = random(0, 255);
+        }
+        CRGB led_color(CHSV(ledHue, DEFAULT_SAT, DEFAULT_VALUE));
         _adjustLed(&led_color, led_colorAdjustment);
-        rgbLedWrite(task_params.ledPin, led_color.red, led_color.green, led_color.blue);
-        LOGD(TAG, "hue: %d (%d, %d, %d)", task_params.hue, led_color.red, led_color.green, led_color.blue);
+        rgbLedWrite(ledPin, led_color.red, led_color.green, led_color.blue);
+        // Send out the message
+        ledState.ledHue = ledHue;
+        ledState.ledOn = true;
+        xQueueSend(xQueueLedState, static_cast<void*>(&ledState), (TickType_t)0);
+        LOGD(TAG, "hue: %d (%d, %d, %d)", ledHue, led_color.red, led_color.green, led_color.blue);
       }
     } else {
-      digitalWrite(task_params.ledPin, (task_params.ledState == Soylent::LedClass::LedState::ON) ? HIGH : LOW);
-      LOGD(TAG, "LED %s!", (task_params.ledState == Soylent::LedClass::LedState::ON) ? "on" : "off");
+      digitalWrite(ledPin, (ledMode == Soylent::LedClass::LedMode::ON) ? HIGH : LOW);
+
+      // Send out the message
+      ledState.ledOn = (ledMode == Soylent::LedClass::LedMode::ON) ? true : false;
+      xQueueSend(xQueueLedState, static_cast<void*>(&ledState), (TickType_t)0);
+      LOGD(TAG, "LED %s!", (ledMode == Soylent::LedClass::LedMode::ON) ? "on" : "off");
     }
   }
 
   taskENTER_CRITICAL(&cs_spinlock);
-  task_params.srAnimated->signalComplete();
-  task_params.srBusy->signalComplete();
+  params->srAnimated->signalComplete();
+  params->srBusy->signalComplete();
   taskEXIT_CRITICAL(&cs_spinlock);
 
   vTaskDelete(NULL);
 }
 
-void Soylent::LedClass::_setLedCallback() {
+void Soylent::LedClass::_setLedCallback(LedMode ledMode, uint8_t ledHue, bool randomHue, uint32_t timeConstant) {
   _srBusy.setWaiting();
 
   // possibly stop the blinking or rainbow task first
@@ -252,7 +327,7 @@ void Soylent::LedClass::_setLedCallback() {
   }
 
   // allocate and assemble the async parameters in a shared_ptr
-  auto p = std::make_shared<LEDTaskParams>(&_srBusy, &_srAnimated, _ledState, _ledPin, _rgbLed, _timeConstant, 0);
+  auto p = std::make_shared<LEDTaskParams>(&_srBusy, &_srAnimated, ledMode, _ledPin, _rgbLed, timeConstant, ledHue, randomHue, _xQueueLedState);
   if (p) {
     // create the FreeRTOS-Task
     customTaskCreateUniversal(_async_setLedTask, "setLedTask", CONFIG_THINGY_TASKS_STACK_SIZE,
@@ -283,29 +358,53 @@ void Soylent::LedClass::_setLedCallback() {
 }
 
 Soylent::LedClass::LedState Soylent::LedClass::getLedState() {
-  return _ledState;
+  return LedState(_ledHue, _ledOn);
 }
 
-void Soylent::LedClass::setLedState(LedState ledState) {
+Soylent::LedClass::LedMode Soylent::LedClass::getLedMode() {
+  return _ledMode;
+}
+
+void Soylent::LedClass::setLed(LedMode ledMode, uint8_t ledHue, bool randomHue) {
   if (_srInitialized.pending()) {
     LOGW(TAG, "uninitialized, can't do it!");
     return;
   }
 
-  if (_ledState != ledState) {
-    _ledState = ledState;
+  // if ((_ledMode != ledAnimation) || (_ledHue != ledHue) || randomHue) {
+  //   _ledMode = ledAnimation;
+  //   _ledHue = ledHue;
+  //   _randomHue = randomHue;
+  //   yield();
 
-    if (_ledState == LedState::BLINK) {
-      _timeConstant = 500;
-    } else if (_ledState == LedState::RAINBOW) {
-      _timeConstant = 19;
-    }
+  // if (_ledMode == LedMode::BLINK) {
+  //   _timeConstant = 500;
+  // } else if (_ledMode == LedMode::RAINBOW) {
+  //   _timeConstant = 19;
+  // }
 
-    // create and run a task for creating and running an async task for setting the LED...
-    // task is pending until the LED is not busy
-    LOGD(TAG, "Start setting LED...");
-    Task* setLedTask = new Task(TASK_IMMEDIATE, TASK_ONCE, [&] { _setLedCallback(); }, _scheduler, false, NULL, NULL, true);
-    setLedTask->enable();
-    setLedTask->waitFor(&_srBusy);
-  }
+  uint32_t timeConstant = 500;
+  // if (ledMode == LedMode::BLINK) {
+  //   timeConstant = 500;
+  // } else if (ledMode == LedMode::RAINBOW) {
+  //   timeConstant = 19;
+  // }
+
+  // store in private section of class
+  _ledMode = ledMode;
+  _ledHue = ledHue;
+
+  // create and run a task for creating and running an async task for setting the LED...
+  // task is pending until the LED is not busy
+  LOGD(TAG, "Start setting LED...");
+  LOGD(TAG, "hue: %d", ledHue);
+  LOGD(TAG, "random: %d", randomHue);
+  Task* setLedTask = new Task(TASK_IMMEDIATE, TASK_ONCE, [&] { _setLedCallback(_ledMode, _ledHue, randomHue, 500); }, _scheduler, false, NULL, NULL, true);
+  setLedTask->enable();
+  setLedTask->waitFor(&_srBusy);
+  // }
+}
+
+void Soylent::LedClass::setLedMode(LedMode ledMode) {
+  Soylent::LedClass::setLed(ledMode, true, 0);
 }
